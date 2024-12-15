@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Basketball Trivia Game</title>
+    <style>
+        /* style.css */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        #game-container {
+            width: 80%;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        #question-container {
+            margin: 20px 0;
+        }
+
+        .answer-btn {
+            display: block;
+            width: 80%;
+            margin: 10px auto;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .answer-btn:hover {
+            background-color: #45a049;
+        }
+
+        #score-container {
+            font-size: 18px;
+            margin: 20px 0;
+        }
+
+        #result {
+            font-size: 20px;
+            color: #2e8b57;
+            font-weight: bold;
+        }
+
+        #next-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #ff5722;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+        }
+
+        #next-btn:hover {
+            background-color: #e64a19;
+        }
+
+        #timer {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>College Basketball Trivia</h1>
+        <p id="timer">Time left: 30</p>
+        <div id="question-container">
+            <p id="question">Loading question...</p>
+        </div>
+        <div id="answers-container">
+            <button class="answer-btn" id="answer-1">Answer 1</button>
+            <button class="answer-btn" id="answer-2">Answer 2</button>
+            <button class="answer-btn" id="answer-3">Answer 3</button>
+            <button class="answer-btn" id="answer-4">Answer 4</button>
+        </div>
+        <div id="score-container">
+            <p id="score">Score: 0</p>
+        </div>
+        <div id="result"></div>
+        <button id="next-btn" onclick="nextQuestion()">Next Question</button>
+    </div>
+
+    <script>
+        // script.js
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timer;
+        let timeLeft = 30;
+
+        // Sound effects
+        const correctSound = new Audio('https://www.soundjay.com/button/beep-07.wav');
+        const wrongSound = new Audio('https://www.soundjay.com/button/beep-05.wav');
+
+        // Trivia questions (10 questions)
+        const questions = [
+            {
+                question: "Who won the 2021 NCAA Men's Basketball Championship?",
+                answers: ["Gonzaga", "Baylor", "Michigan", "Illinois"],
+                correctAnswer: "Baylor"
+            },
+            {
+                question: "Which player is known as 'The Big Fundamental' in NBA history?",
+                answers: ["Shaquille O'Neal", "Tim Duncan", "Kareem Abdul-Jabbar", "LeBron James"],
+                correctAnswer: "Tim Duncan"
+            },
+            {
+                question: "Which school is known for the 'Blue Devils' basketball team?",
+                answers: ["Duke", "North Carolina", "Kentucky", "Kansas"],
+                correctAnswer: "Duke"
+            },
+            {
+                question: "Which college basketball player famously made 'The Shot' in 1982?",
+                answers: ["Michael Jordan", "Larry Bird", "Magic Johnson", "Kareem Abdul-Jabbar"],
+                correctAnswer: "Michael Jordan"
+            },
+            {
+                question: "What is the name of the basketball conference that features teams like UCLA and Arizona?",
+                answers: ["ACC", "Big 12", "Pac-12", "SEC"],
+                correctAnswer: "Pac-12"
+            },
+            {
+                question: "Which team is known for its 'Spartans' basketball team?",
+                answers: ["Michigan State", "Indiana", "Ohio State", "Wisconsin"],
+                correctAnswer: "Michigan State"
+            },
+            {
+                question: "Who is known as the 'Father of College Basketball'?",
+                answers: ["James Naismith", "John Wooden", "Mike Krzyzewski", "Dean Smith"],
+                correctAnswer: "James Naismith"
+            },
+            {
+                question: "Which player holds the record for most points in a single NCAA tournament game?",
+                answers: ["Kemba Walker", "Wilt Chamberlain", "Bill Walton", "David Thompson"],
+                correctAnswer: "Wilt Chamberlain"
+            },
+            {
+                question: "Which team is known for the 'Tar Heels' basketball team?",
+                answers: ["Duke", "North Carolina", "Louisville", "Kentucky"],
+                correctAnswer: "North Carolina"
+            },
+            {
+                question: "Which team won the NCAA Men's Basketball Championship in 1983?",
+                answers: ["North Carolina", "Louisville", "NC State", "Houston"],
+                correctAnswer: "NC State"
+            }
+        ];
+
+        // Load the current question
+        function loadQuestion() {
+            const currentQuestion = questions[currentQuestionIndex];
+            document.getElementById("question").textContent = currentQuestion.question;
+
+            currentQuestion.answers.forEach((answer, index) => {
+                document.getElementById(`answer-${index + 1}`).textContent = answer;
+                document.getElementById(`answer-${index + 1}`).onclick = function() {
+                    checkAnswer(answer);
+                };
+            });
+
+            document.getElementById("result").textContent = "";
+            document.getElementById("next-btn").style.display = "none";
+            startTimer();
+        }
+
+        // Start the timer
+        function startTimer() {
+            timeLeft = 30;
+            document.getElementById("timer").textContent = `Time left: ${timeLeft}`;
+            timer = setInterval(function() {
+                timeLeft--;
+                document.getElementById("timer").textContent = `Time left: ${timeLeft}`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    checkAnswer("");  // Automatically check if time is up
+                }
+            }, 1000);
+        }
+
+        // Check if the answer is correct
+        function checkAnswer(answer) {
+            const currentQuestion = questions[currentQuestionIndex];
+
+            clearInterval(timer);  // Stop the timer when an answer is selected
+
+            if (answer === currentQuestion.correctAnswer) {
+                score++;
+                correctSound.play();
+                document.getElementById("result").textContent = "Correct!";
+            } else {
+                wrongSound.play();
+                document.getElementById("result").textContent = "Wrong! The correct answer was: " + currentQuestion.correctAnswer;
+            }
+
+            document.getElementById("score").textContent = `Score: ${score}`;
+            document.getElementById("next-btn").style.display = "block";
+        }
+
+        // Move to the next question
+        function nextQuestion() {
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                document.getElementById("game-container").innerHTML = `
+                    <h1>Game Over!</h1>
+                    <p>Your final score is: ${score}</p>
+                    <button onclick="restartGame()">Restart</button>
+                `;
+            }
+        }
+
+        // Restart the game
+        function restartGame() {
+            currentQuestionIndex = 0;
+            score = 0;
+            loadQuestion();
+            document.getElementById("score").textContent = "Score: 0";
+        }
+
+        // Start the game
+        loadQuestion();
+    </script>
+    <br><br>
+    <a href="index.html">Link to Resume</a>
+    <a href="scratch.html">Link to Scratch Page</a>
+</body>
+</html>
